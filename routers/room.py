@@ -17,7 +17,9 @@ def get_db():
 # Create Room
 @router.post("/")
 def create_room(room: RoomCreate, db: Session = Depends(get_db)):
-    new_room = Room(**room.dict())
+    room_data = room.dict()
+    room_data.pop("owner_id", None)
+    new_room = Room(**room_data)
     db.add(new_room)
     db.commit()
     db.refresh(new_room)
@@ -25,7 +27,7 @@ def create_room(room: RoomCreate, db: Session = Depends(get_db)):
 
 # Read All Rooms
 @router.get("/")
-def get_all_rooms(db: Session = Depends(get_db)):
+def get_all_rooms(bachelor_allowed: bool = True, db: Session = Depends(get_db)):
     return db.query(Room).all()
 
 # Read Single Room

@@ -1,19 +1,24 @@
 from pydantic import BaseModel
-from datetime import date, datetime
+from datetime import date
 
-class BookingBase(BaseModel):
+class BookingCreate(BaseModel):
     user_id: int
     room_id: int
     start_date: date
     end_date: date
 
+class BookingUpdate(BaseModel):
+    start_date: date
+    end_date: date
+    status: str
 
-class BookingCreate(BookingBase):
-    pass
-
-class BookingResponse(BookingBase):
+class BookingResponse(BaseModel):
     booking_id: int
-    booking_date: datetime
+    user_id: int
+    room_id: int
+    start_date: date
+    end_date: date
+    status: str
 
     class Config:
         from_attributes = True

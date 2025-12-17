@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from db.database import Base
 
@@ -11,6 +11,8 @@ class Room(Base):
     rent = Column(Integer)
     room_type = Column(String)
     description = Column(String)
+    bachelor_allowed = Column(Boolean, default=True)
+
 
     owner_id = Column(Integer, ForeignKey("owners.id"))
     owner = relationship("Owner", back_populates="rooms")
