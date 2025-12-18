@@ -16,7 +16,7 @@ def get_db():
         db.close()
 
 # get all Owner
-@router.get("/{owner_id}/rooms")
+@router.get("/")
 def get_all_owner(owner_id: int, db: Session = Depends(get_db)):
     owner = db.query(Owner).filter(Owner.id == owner_id).first()
     if not owner:
@@ -50,7 +50,7 @@ def create_owner(data: OwnerCreate, db: Session = Depends(get_db)):
 
 # Get Owner by ID
 @router.get("/{owner_id}", response_model=OwnerResponse)
-def get_owner(owner_id: int, db: Session = Depends(get_db)):
+def get_owner_by_id(owner_id: int, db: Session = Depends(get_db)):
     owner = db.query(Owner).filter(Owner.id == owner_id).first()
     if not owner:
         raise HTTPException(404, "Owner not found")

@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 import os
 
-# loading the package
 load_dotenv()
 
 DB_USERNAME = os.getenv("DB_USERNAME")
