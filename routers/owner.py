@@ -16,20 +16,10 @@ def get_db():
         db.close()
 
 # get all Owner
-@router.get("/")
-def get_all_owner(owner_id: int, db: Session = Depends(get_db)):
-    owner = db.query(Owner).filter(Owner.id == owner_id).first()
-    if not owner:
-        raise HTTPException(status_code=404, detail="Owner not found")
-
-    rooms = db.query(Room).filter(Room.owner_id == owner_id).all()
-
-    return {
-        "owner_id": owner.id,
-        "owner_name": owner.owner_name,
-        "total_rooms": len(rooms),
-        "rooms": rooms
-    }
+@router.get("/", response_model=list[OwnerResponse])
+def get_all_owner(db: Session = Depends(get_db)):
+    owner = db.query(Owner).all()
+    return owner
 
 # Owner Create
 @router.post("/", response_model=OwnerResponse)
@@ -81,20 +71,3 @@ def delete_owner(owner_id: int, db: Session = Depends(get_db)):
     db.delete(owner)
     db.commit()
     return {"message": "Owner deleted"}
-
-# Add Room under Owner
-@router.post("/{owner_id}/room", response_model=RoomResponse)
-def add_room(owner_id: int, data: RoomCreate, db: Session = Depends(get_db)):
-    owner = db.query(Owner).filter(Owner.id == owner_id).first()
-    if not owner:
-        raise HTTPException(404, "Owner not found")
-
-    room = Room(
-        room_name=data.room_name,
-        price=data.price,
-        owner_id=owner_id
-    )
-    db.add(room)
-    db.commit()
-    db.refresh(room)
-    return room
