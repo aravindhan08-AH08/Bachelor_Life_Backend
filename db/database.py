@@ -3,12 +3,6 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from core.config import DB_USERNAME, DB_PASSWORD, DB_HOSTNAME, DB_PORT, DATABASE
 
 
-DB_USERNAME = "postgres"
-DB_PASSWORD = "AcademyRootPassword"
-DB_HOSTNAME = "localhost"
-DB_PORT = "5432"
-DATABASE = "Bachelor_life"
-
 DB_URL = f"postgresql+psycopg2://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOSTNAME}:{DB_PORT}/{DATABASE}"
 
 # create engine
