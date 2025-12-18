@@ -9,5 +9,3 @@ class Owner(Base):
     owner_name = Column(String)
     phone = Column(String)
     email = Column(String, unique=True)
-
-    rooms = relationship("Room", back_populates="owner", cascade="all, delete")
