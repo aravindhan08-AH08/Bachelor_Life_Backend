@@ -9,10 +9,13 @@ class RoomCreate(BaseModel):
     description: str
     bachelor_allowed: Optional[bool] = True
 
-
-# class RoomResponse(RoomCreate):
-#     id: int
-
-#     class Config:
-#         from_attributes = True
-
+class RoomResponse(BaseModel):
+    id: int
+    title: str
+    location: str
+    rent: int
+    room_type: str
+    description: str
+    bachelor_allowed: bool
+    class Config:
+        from_attributes = True

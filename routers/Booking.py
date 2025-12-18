@@ -7,6 +7,10 @@ from typing import List
 
 router = APIRouter(prefix="/booking", tags=["Booking"])
 
+# Get All Bookings
+@router.get("/", response_model=List[BookingResponse])
+def get_all_booking(db: Session = Depends(get_db)):
+    return db.query(Booking).all()
 
 # Create Booking
 @router.post("/", response_model=BookingResponse)
@@ -18,10 +22,6 @@ def create_booking(data: BookingCreate, db: Session = Depends(get_db)):
     return booking
 
 
-# Get All Bookings
-@router.get("/", response_model=List[BookingResponse])
-def get_all_booking(db: Session = Depends(get_db)):
-    return db.query(Booking).all()
 
 
 # Get Booking By User
