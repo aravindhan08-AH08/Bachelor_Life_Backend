@@ -1,15 +1,17 @@
-from sqlalchemy import Column, Integer, Date, DateTime, ForeignKey, String
-from sqlalchemy.sql import func
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
 from db.database import Base
+from datetime import datetime
 
 class Booking(Base):
-    __tablename__ = "booking"
+    __tablename__ = "bookings"
 
-    booking_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer)
-    room_id = Column(Integer)
+    id = Column(Integer, primary_key=True, index=True)
+    room_id = Column(Integer, ForeignKey("rooms.id")) 
+    user_id = Column(Integer, ForeignKey("owners.id")) 
+    status = Column(String, default="Interested") # User interest kaatunadhukku
+    created_at = Column(DateTime, default=datetime.utcnow)
 
-    booking_date = Column(DateTime(timezone=True), server_default=func.now())
-    start_date = Column(Date)
-    end_date = Column(Date)
-    status = Column(String, default="pending")
+    # Relationships
+    room = relationship("Room", back_populates="bookings")
+    user = relationship("Owner", back_populates="bookings") # Owner table-oda user-ah connect panrom

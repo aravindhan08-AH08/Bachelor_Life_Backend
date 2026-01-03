@@ -1,62 +1,56 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from db.database import SessionLocal
+from db.database import get_db
 from models.room_models import Room
 from schema.room_schema import RoomCreate, RoomResponse
+from core.security import get_current_user
 
 router = APIRouter(prefix="/rooms", tags=["Rooms"])
 
-# DB Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-# Get All Rooms
+# 1. Get ONLY Approved Rooms (Public View)
 @router.get("/", response_model=list[RoomResponse])
-def get_all_rooms(bachelor_allowed: bool = True, db: Session = Depends(get_db)):
-    return db.query(Room).all()
+def get_all_rooms(db: Session = Depends(get_db)):
+    # is_approved = True irukura rooms mattum dhaan user-ku theriyanum
+    return db.query(Room).filter(Room.is_approved == True).all()
 
-# Create Room
-@router.post("/")
-def create_room(room: RoomCreate, db: Session = Depends(get_db)):
-    new_room = Room(**room.dict())
+# 2. Create Room (JSON Format - Back to Normal)
+@router.post("/", status_code=status.HTTP_201_CREATED)
+def create_room(room: RoomCreate, db: Session = Depends(get_db), current_owner: dict = Depends(get_current_user)):
+    # room.dict() moolama JSON data-va dictionary-ah mathurom
+    room_data = room.dict()
+    
+    # Swagger-la 'owner_id' kuduthurundhaalum adhai backend ignore pannidum
+    room_data.pop("owner_id", None) 
+    
+    # Login panna owner-oda ID-ah backend-ae sethukum
+    new_room = Room(**room_data, owner_id=current_owner.id, is_approved=False) 
+    
     db.add(new_room)
     db.commit()
     db.refresh(new_room)
-    return new_room
+    return {"message": "Room sent for Admin approval", "room": new_room}
 
-
-# Get Room By id
-@router.get("/{room_id}", response_model=list[RoomResponse])
-def get_rooms_by_id(room_id: int, db: Session = Depends(get_db)):
+# 3. Admin Route to Approve Room
+@router.put("/{room_id}/approve", tags=["Admin"])
+def approve_room(room_id: int, db: Session = Depends(get_db)):
     room = db.query(Room).filter(Room.id == room_id).first()
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    return room
-
-# Update Room
-@router.put("/{room_id}")
-def update_room(room_id: int, updated: RoomCreate, db: Session = Depends(get_db)):
-    room = db.query(Room).filter(Room.id == room_id).first()
-    if not room:
-        raise HTTPException(status_code=404, detail="Room not found")
-
-    for key, value in updated.dict().items():
-        setattr(room, key, value)
-
+    
+    room.is_approved = True # Admin approve panna dhaan room live aagum
     db.commit()
-    db.refresh(room)
-    return room
+    return {"message": "Room approved successfully"}
 
-# Delete Room
+# 4. Delete Room
 @router.delete("/{room_id}")
-def delete_room(room_id: int, db: Session = Depends(get_db)):
+def delete_room(room_id: int, db: Session = Depends(get_db), current_owner: dict = Depends(get_current_user)):
     room = db.query(Room).filter(Room.id == room_id).first()
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
+    
+    # Intha owner-oda room-ah nu check pannuvom
+    if room.owner_id != current_owner.id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this room")
 
     db.delete(room)
     db.commit()

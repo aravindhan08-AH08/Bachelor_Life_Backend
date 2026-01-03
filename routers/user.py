@@ -1,73 +1,31 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
-from db.database import SessionLocal
-from models.user_models import Customer
+from db.database import get_db # database.py-la get_db irundha idhu okay
+from models.owner_models import Owner # Owner model dhaan login-la use panrom
 from schema.user_schema import UserCreate, UserResponse
+from core.security import get_password_hash
 
 router = APIRouter(prefix="/user", tags=["User"])
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-# Get all user
-@router.get("/", response_model=list[UserResponse])
-def get_all_user(db:Session = Depends(get_db)):
-    return db.query(Customer).all()
-
-
-# Create user
+# 1. Create User (Ippo Owner table-la register aagum)
 @router.post("/", response_model=UserResponse)
 def create_user(data: UserCreate, db: Session = Depends(get_db)):
-    existing = db.query(Customer).filter(Customer.email == data.email).first()
+    # Owner table-la email check panrom
+    existing = db.query(Owner).filter(Owner.email == data.email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already exists")
     
+    hashed_pwd = get_password_hash(data.password)
 
-    user = Customer(
-        name=data.name,
+    new_user = Owner(
+        owner_name=data.name, # Model-la 'owner_name' nu irundha idhu correct
         phone=data.phone,
-        email=data.email
+        email=data.email,
+        hashed_password=hashed_pwd
     )
-    db.add(user)
+    db.add(new_user)
     db.commit()
-    db.refresh(user)
-    return user
+    db.refresh(new_user)
+    return new_user
 
-# Get User by Id
-@router.get("/{user_id}", response_model=UserResponse)
-def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(Customer).filter(Customer.id == user_id).first()
-    if not user:
-        raise HTTPException(404, "User not Found")
-    return user
-
-# Update user
-@router.put("/{user_id}", response_model=UserResponse)
-def upadate_user(user_id: int, data: UserCreate, db:Session = Depends(get_db)):
-    user = db.query(Customer).filter(Customer.id == user_id).first()
-    if not user:
-        raise HTTPException(404, "User not Found")
-
-    user.name = data.name
-    user.phone = data.phone
-    user.email = data.email
-
-    db.commit()
-    db.refresh(user)
-    return user
-
-# Delete User
-@router.delete("/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(Customer).filter(Customer.id == user_id).first()
-    if not user:
-        raise HTTPException(404, "User Not Found")
-    
-    db.delete(user)
-    db.commit()
-    return {"message": "User deleted successfully"}
+# Baki functions (get_all, get_by_id) ellathulayum 'Customer'-ku bathila 'Owner' nu mathi use pannunga.

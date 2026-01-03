@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
+from sqlalchemy.orm import relationship
 from db.database import Base
 
 class Room(Base):
@@ -11,3 +12,9 @@ class Room(Base):
     room_type = Column(String)
     description = Column(String)
     bachelor_allowed = Column(Boolean, default=True)
+    is_approved = Column(Boolean, default=False) # Admin approval status
+    owner_id = Column(Integer, ForeignKey("owners.id"))
+
+    # Relationships
+    owner = relationship("Owner", back_populates="rooms")
+    bookings = relationship("Booking", back_populates="room") # Indha connection mukkiyam

@@ -7,6 +7,7 @@ class RoomCreate(BaseModel):
     rent: int
     room_type: str
     description: str
+    owner_id: int 
     bachelor_allowed: Optional[bool] = True
 
 class RoomResponse(BaseModel):

@@ -5,6 +5,7 @@ from db.database import SessionLocal
 from models.owner_models import Owner
 from models.room_models import Room
 from schema.owner_schema import OwnerCreate, OwnerResponse, RoomCreate, RoomResponse
+from core.security import get_password_hash
 
 router = APIRouter(prefix="/owner", tags=["Owner"])
 
@@ -28,15 +29,18 @@ def create_owner(data: OwnerCreate, db: Session = Depends(get_db)):
     if existing:
         raise HTTPException(400, "Email already exists")
 
-    new = Owner(
+    hashed_pwd = get_password_hash(data.password)
+
+    new_owner = Owner(
         owner_name=data.owner_name,
         phone=data.phone,
-        email=data.email
+        email=data.email,
+        hashed_password=hashed_pwd
     )
-    db.add(new)
+    db.add(new_owner)
     db.commit()
-    db.refresh(new)
-    return new
+    db.refresh(new_owner)
+    return new_owner
 
 # Get Owner by ID
 @router.get("/{owner_id}", response_model=OwnerResponse)

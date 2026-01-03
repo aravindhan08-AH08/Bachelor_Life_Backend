@@ -9,3 +9,7 @@ class Owner(Base):
     owner_name = Column(String)
     phone = Column(String)
     email = Column(String, unique=True)
+    hashed_password = Column(String)
+    
+    rooms = relationship("Room", back_populates="owner")
+    bookings = relationship("Booking", back_populates="user") # Indha line dhaan error-ah fix pannum
