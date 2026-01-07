@@ -5,49 +5,53 @@ from models.booking_models import Booking
 from models.room_models import Room
 from models.owner_models import Owner
 from schema.booking_schema import BookingCreate, BookingResponse
-from deps import get_current_user # Namma pudhu deps-ah import panrom
 from typing import List
-from deps import get_current_user
 
 router = APIRouter(prefix="/booking", tags=["Booking"])
 
 @router.post("/", response_model=BookingResponse)
-def create_booking(data: BookingCreate, db: Session = Depends(get_db), current_user: any = Depends(get_current_user)):
+def create_booking(data: BookingCreate, db: Session = Depends(get_db)):
     room = db.query(Room).filter(Room.id == data.room_id, Room.is_approved == True).first()
     if not room:
-        raise HTTPException(status_code=400, detail="Room not available")
+        raise HTTPException(status_code=400, detail="Room not available or not approved")
 
     owner = db.query(Owner).filter(Owner.id == room.owner_id).first()
-    owner_name = owner.owner_name if owner else "Unknown"
+    owner_name = owner.owner_name if owner else "Unknown Owner"
+    owner_phone = owner.phone if owner else "No Phone"
 
     new_booking = Booking(
         room_id=data.room_id, 
-        user_id=current_user.id, 
+        user_id=data.user_id,
         status="Interested"
     )
     
-    room.is_approved = False 
     
     db.add(new_booking)
     db.commit()
     db.refresh(new_booking)
     
     new_booking.owner_name = owner_name 
-    return new_booking
+    
+    return {
+        "id": new_booking.id,
+        "room_id": new_booking.room_id,
+        "user_id": new_booking.user_id,
+        "status": new_booking.status,
+        "owner_name": owner_name,
+        "owner_phone": owner_phone
+    }
 
 @router.put("/{booking_id}/approve")
-def approve_booking(booking_id: int, db: Session = Depends(get_db), current_user: any = Depends(get_current_user)):
+def approve_booking(booking_id: int, owner_id: int, db: Session = Depends(get_db)):
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
 
-    # Room check
     room = db.query(Room).filter(Room.id == booking.room_id).first()
     
-    # Security: This is check for to the owner only
-    if room.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Neenga intha room-oda owner illai!")
+    if room.owner_id != owner_id:
+        raise HTTPException(status_code=403, detail="You are not the owner of this room!")
 
     booking.status = "Approved"
     db.commit()
-    return {"message": "Booking approved by Owner", "status": booking.status}
+    return {"message": "Booking approved successfully", "status": booking.status}

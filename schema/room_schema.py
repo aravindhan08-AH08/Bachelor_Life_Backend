@@ -9,7 +9,6 @@ class RoomCreate(BaseModel):
     description: str
     max_persons: int = 1
     bachelor_allowed: bool = True
-    # Amenities from Frontend
     wifi: bool = False
     ac: bool = False
     attached_bath: bool = False

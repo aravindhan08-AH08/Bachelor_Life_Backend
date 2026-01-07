@@ -8,17 +8,16 @@ from typing import List
 
 router = APIRouter(prefix="/user", tags=["User"])
 
-# 1. Create User (Save to Customer Table)
+# 1. Create User
 @router.post("/", response_model=UserResponse)
 def create_user(data: UserCreate, db: Session = Depends(get_db)):
-    # Check if user already exists in Customer table
     existing = db.query(Customer).filter(Customer.email == data.email).first()
     if existing:
         raise HTTPException(400, "User email already exists")
 
     hashed_pwd = get_password_hash(data.password)
 
-    new_user = Customer( # INGA DHAAN CUSTOMER TABLE USE PANNANUM
+    new_user = Customer( # This is use the User model or table
         name=data.name,
         phone=data.phone,
         email=data.email,
@@ -47,7 +46,6 @@ def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
 # 4. Update User
 @router.put("/{user_id}", response_model=UserResponse)
 def update_user(user_id: int, data: UserCreate, db: Session = Depends(get_db)):
-    # 1. Customer table-la user irukkara-nu thedurom
     user = db.query(Customer).filter(Customer.id == user_id).first()
     
     if not user:
