@@ -12,9 +12,21 @@ class Room(Base):
     room_type = Column(String)
     description = Column(String)
     bachelor_allowed = Column(Boolean, default=True)
-    is_approved = Column(Boolean, default=False) # Admin approval status
+    max_persons = Column(Integer, default=1)
+    is_approved = Column(Boolean, default=False)
+    is_available = Column(Boolean, default=True)
     owner_id = Column(Integer, ForeignKey("owners.id"))
+    
+    
+    wifi = Column(Boolean, default=False)
+    ac = Column(Boolean, default=False)
+    attached_bath = Column(Boolean, default=False)
+    kitchen_access = Column(Boolean, default=False)
+    parking = Column(Boolean, default=False)
+    laundry = Column(Boolean, default=False)
+    security = Column(Boolean, default=False)
+    gym = Column(Boolean, default=False)
+    image_url = Column(String, nullable=True) # For file upload path
 
-    # Relationships
     owner = relationship("Owner", back_populates="rooms")
-    bookings = relationship("Booking", back_populates="room") # Indha connection mukkiyam
+    bookings = relationship("Booking", back_populates="room")

@@ -12,4 +12,3 @@ class Owner(Base):
     hashed_password = Column(String)
     
     rooms = relationship("Room", back_populates="owner")
-    bookings = relationship("Booking", back_populates="user") # Indha line dhaan error-ah fix pannum

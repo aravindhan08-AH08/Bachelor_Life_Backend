@@ -11,6 +11,7 @@ class BookingResponse(BookingBase):
     id: int
     user_id: int
     status: str
+    owner_name: str
     created_at: datetime
 
     class Config:

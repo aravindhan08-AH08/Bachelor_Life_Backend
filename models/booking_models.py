@@ -8,10 +8,10 @@ class Booking(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     room_id = Column(Integer, ForeignKey("rooms.id")) 
-    user_id = Column(Integer, ForeignKey("owners.id")) 
-    status = Column(String, default="Interested") # User interest kaatunadhukku
+    user_id = Column(Integer, ForeignKey("customer.id")) 
+    status = Column(String, default="Interested")
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     room = relationship("Room", back_populates="bookings")
-    user = relationship("Owner", back_populates="bookings") # Owner table-oda user-ah connect panrom
+    user = relationship("Owner")

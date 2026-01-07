@@ -7,16 +7,22 @@ class RoomCreate(BaseModel):
     rent: int
     room_type: str
     description: str
-    owner_id: int 
-    bachelor_allowed: Optional[bool] = True
+    max_persons: int = 1
+    bachelor_allowed: bool = True
+    # Amenities from Frontend
+    wifi: bool = False
+    ac: bool = False
+    attached_bath: bool = False
+    kitchen_access: bool = False
+    parking: bool = False
+    laundry: bool = False
+    security: bool = False
+    gym: bool = False
 
-class RoomResponse(BaseModel):
+class RoomResponse(RoomCreate):
     id: int
-    title: str
-    location: str
-    rent: int
-    room_type: str
-    description: str
-    bachelor_allowed: bool
+    is_approved: bool
+    is_available: bool
+    image_url: Optional[str] = None
     class Config:
         from_attributes = True

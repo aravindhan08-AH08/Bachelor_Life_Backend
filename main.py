@@ -5,8 +5,7 @@ from routers import room, auth, Booking, user, owner
 from routers.owner import router as owner_router
 from routers.user import router as user_router
 from db.database import Base, engine
-from models.room_models import Room
-from models.owner_models import Owner
+from models import owner_models, user_models, room_models, booking_models
 
 # 1. First app create pannanum
 app = FastAPI(title="Welcome to BachelorLife Backend")
