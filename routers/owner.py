@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from db.database import SessionLocal
 from models.owner_models import Owner
 from models.room_models import Room
+from models.booking_models import Booking  # <--- IDHU DHAAN MISSING FIX
 from schema.owner_schema import OwnerCreate, OwnerResponse, RoomCreate, RoomResponse
 from core.security import get_password_hash
 
@@ -74,3 +75,22 @@ def delete_owner(owner_id: int, db: Session = Depends(get_db)):
     db.delete(owner)
     db.commit()
     return {"message": "Owner deleted"}
+
+# OWNER DASHBOARD - Get all rooms and bookings for a specific owner
+@router.get("/dashboard")
+def get_owner_dashboard(owner_email: str, db: Session = Depends(get_db)):
+    owner = db.query(Owner).filter(Owner.email == owner_email).first()
+    if not owner:
+        raise HTTPException(status_code=404, detail="Owner not found")
+
+    my_rooms = db.query(Room).filter(Room.owner_id == owner.id).all()
+
+    room_ids = [room.id for room in my_rooms]
+    my_bookings = db.query(Booking).filter(Booking.room_id.in_(room_ids)).all()
+
+    return {
+        "owner_name": owner.owner_name,
+        "total_rooms": len(my_rooms),
+        "rooms": my_rooms,
+        "bookings_received": my_bookings
+    }

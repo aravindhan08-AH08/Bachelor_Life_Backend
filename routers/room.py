@@ -24,6 +24,7 @@ async def create_room(
     owner_email: str = Form(...),
     title: str = Form(...),
     location: str = Form(...),
+    deposit: int = Form(...),
     rent: int = Form(...),
     room_type: str = Form(...),
     max_persons: int = Form(1),
@@ -54,7 +55,7 @@ async def create_room(
     new_room = Room(
         title=title, location=location, rent=rent, room_type=room_type,
         description=description, max_persons=max_persons, bachelor_allowed=bachelor_allowed,
-        wifi=wifi, ac=ac, attached_bath=attached_bath,
+        wifi=wifi, ac=ac, attached_bath=attached_bath,deposit=deposit,
         kitchen_access=kitchen_access, parking=parking, laundry=laundry,
         security=security, gym=gym, image_url=file_path, is_available=is_available,
         owner_id=owner.id,
@@ -73,6 +74,7 @@ async def update_room(
     owner_email: str = Form(...),
     title: str = Form(...),
     location: str = Form(...),
+    deposit: int = Form(...),
     rent: int = Form(...),
     room_type: str = Form(...),
     max_persons: int = Form(...),
@@ -95,8 +97,14 @@ async def update_room(
             shutil.copyfileobj(file.file, buffer)
         room.image_url = file_path
 
-    room.title, room.location, room.rent = title, location, rent
-    room.description, room.is_available = description, is_available
+    room.title = title
+    room.location = location
+    room.rent = rent
+    room.deposit = deposit
+    room.room_type = room_type
+    room.max_persons = max_persons
+    room.description = description
+    room.is_available = is_available
 
     db.commit()
     db.refresh(room)

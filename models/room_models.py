@@ -8,6 +8,7 @@ class Room(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String)
     location = Column(String)
+    deposit = Column(Integer)
     rent = Column(Integer)
     room_type = Column(String)
     description = Column(String)

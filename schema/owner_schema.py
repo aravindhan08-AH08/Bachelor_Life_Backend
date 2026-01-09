@@ -1,4 +1,6 @@
 from pydantic import BaseModel, EmailStr
+from typing import List, Optional
+
 class OwnerBase(BaseModel):
     owner_name: str
     phone: str
@@ -13,6 +15,16 @@ class OwnerResponse(OwnerBase):
     class Config:
         from_attributes = True 
 
+# --- ITHU PUTHUSA SETHATHU (Remove pannala) ---
+class OwnerDashboardResponse(BaseModel):
+    owner_name: str
+    total_rooms: int
+    rooms: List[dict] 
+    bookings_received: List[dict]
+
+    class Config:
+        from_attributes = True
+# ---------------------------------------------
 
 class RoomBase(BaseModel):
     room_name: str

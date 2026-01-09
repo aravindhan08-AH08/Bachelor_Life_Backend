@@ -1,57 +1,58 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
 from db.database import get_db
 from models.booking_models import Booking
 from models.room_models import Room
 from models.owner_models import Owner
-from schema.booking_schema import BookingCreate, BookingResponse
-from typing import List
+
+from schema.booking_schema import BookingCreate 
 
 router = APIRouter(prefix="/booking", tags=["Booking"])
 
-@router.post("/", response_model=BookingResponse)
+# 1. CREATE BOOKING
+@router.post("/", status_code=201)
 def create_booking(data: BookingCreate, db: Session = Depends(get_db)):
-    room = db.query(Room).filter(Room.id == data.room_id, Room.is_approved == True).first()
+    room = db.query(Room).filter(Room.id == data.room_id).first()
     if not room:
-        raise HTTPException(status_code=400, detail="Room not available or not approved")
-
-    owner = db.query(Owner).filter(Owner.id == room.owner_id).first()
-    owner_name = owner.owner_name if owner else "Unknown Owner"
-    owner_phone = owner.phone if owner else "No Phone"
+        raise HTTPException(status_code=404, detail="Room not found!")
 
     new_booking = Booking(
-        room_id=data.room_id, 
+        room_id=data.room_id,
         user_id=data.user_id,
-        status="Interested"
+        status="Pending"
     )
-    
-    
     db.add(new_booking)
     db.commit()
     db.refresh(new_booking)
-    
-    new_booking.owner_name = owner_name 
-    
-    return {
-        "id": new_booking.id,
-        "room_id": new_booking.room_id,
-        "user_id": new_booking.user_id,
-        "status": new_booking.status,
-        "owner_name": owner_name,
-        "owner_phone": owner_phone
-    }
+    return {"message": "Booking request sent to Owner! Waiting for payment request.", "booking": new_booking}
 
-@router.put("/{booking_id}/approve")
-def approve_booking(booking_id: int, owner_id: int, db: Session = Depends(get_db)):
+@router.put("/approve/{booking_id}")
+def approve_booking(
+    booking_id: int, 
+    owner_email: str = Form(...),
+    db: Session = Depends(get_db)
+):
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
-        raise HTTPException(status_code=404, detail="Booking not found")
+        raise HTTPException(status_code=404, detail="Booking not found!")
 
     room = db.query(Room).filter(Room.id == booking.room_id).first()
-    
-    if room.owner_id != owner_id:
-        raise HTTPException(status_code=403, detail="You are not the owner of this room!")
+    owner = db.query(Owner).filter(Owner.id == room.owner_id).first()
 
-    booking.status = "Approved"
+    if owner.email != owner_email:
+        raise HTTPException(
+            status_code=403, 
+            detail="You are not this room's owner! Permission denied."
+        )
+
+    booking.status = "Confirmed"
+    room.is_available = False
+
     db.commit()
-    return {"message": "Booking approved successfully", "status": booking.status}
+    db.refresh(booking)
+
+    return {
+        "message": "Booking successfully confirmed by Owner!",
+        "status": booking.status,
+        "room_title": room.title
+    }

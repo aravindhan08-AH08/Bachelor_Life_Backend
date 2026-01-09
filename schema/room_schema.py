@@ -5,6 +5,7 @@ class RoomCreate(BaseModel):
     title: str
     location: str
     rent: int
+    deposit: int
     room_type: str
     description: str
     max_persons: int = 1
